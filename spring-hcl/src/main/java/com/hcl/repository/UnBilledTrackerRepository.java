@@ -11,16 +11,16 @@ import com.hcl.util.ConstantUtility;
 
 public interface UnBilledTrackerRepository extends JpaRepository<UnBilledTracker, String> {
 
-	@Query(value = ConstantUtility.SELECT_UN_BILLED, nativeQuery = true)
-	List<UnBilledTracker> getEBDLWDTRFOutDateGreaterThanEqual(Date date);
+/*	@Query(value = ConstantUtility.SELECT_UN_BILLED, nativeQuery = true)
+	List<UnBilledTracker> getEBDLWDTRFOutDateGreaterThanEqual(Date date);*/
 
-	public List<UnBilledTracker> findAllByCategoryType(String categoryType);
+	//public List<UnBilledTracker> findAllByCategoryType(String categoryType);
 
-	@Query(value = "select * from UnBilled_Tracker where Category_Type = ? and DATEPART(YYYY,EBD_LWD_TRF_Out_Date)=? and DATEPART(MONTH,EBD_LWD_TRF_Out_Date)=? ", nativeQuery = true)
-	public List<UnBilledTracker> findAllByCategoryTypeAndMonthAndYear(String categoryType, int year, int month);
+	//@Query(value = "select * from UnBilled_Tracker where Category_Type = ? and DATEPART(YYYY,EBD_LWD_TRF_Out_Date)=? and DATEPART(MONTH,EBD_LWD_TRF_Out_Date)=? ", nativeQuery = true)
+	//public List<UnBilledTracker> findAllByCategoryTypeAndMonthAndYear(String categoryType, int year, int month);
 
-	@Query(value = "select * from UnBilled_Tracker where Category_Type = ? and DATEPART(YYYY,EBD_LWD_TRF_Out_Date)=?", nativeQuery = true)
-	public List<UnBilledTracker> findAllByCategoryTypeAndYear(String categoryType, int year);
+	//@Query(value = "select * from UnBilled_Tracker where Category_Type = ? and DATEPART(YYYY,EBD_LWD_TRF_Out_Date)=?", nativeQuery = true)
+	//public List<UnBilledTracker> findAllByCategoryTypeAndYear(String categoryType, int year);
 	
 	/////////////////////////////////////////////////////////////////
 	

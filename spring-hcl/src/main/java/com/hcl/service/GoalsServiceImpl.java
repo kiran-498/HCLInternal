@@ -9,43 +9,45 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.hcl.entity.Goals;
+import com.hcl.repository.GoalJdbcRepository;
 import com.hcl.repository.GoalJpaRepository;
 
 @Service
 public class GoalsServiceImpl implements GoalsService {
 
 	private GoalJpaRepository goalJpaRepository;
+	
+	private GoalJdbcRepository goalJdbcRepository;
 
 	@Autowired
-	GoalsServiceImpl(GoalJpaRepository goalJpaRepository) {
+	GoalsServiceImpl(GoalJpaRepository goalJpaRepository,GoalJdbcRepository goalJdbcRepository) {
 		this.goalJpaRepository = goalJpaRepository;
+		this.goalJdbcRepository=goalJdbcRepository;
 
 	}
 
 	@Override
 	public List<Goals> getAllgoalsByYear(String year) {
-		List<Goals> list = goalJpaRepository.getAllGoalsByYear(year);
-		list.removeIf(Objects::isNull);
+		List<Goals> list = goalJdbcRepository.getAllGoalsByYear(year);
+		//list.removeIf(Objects::isNull);
 		return list;
 	}
 
 	@Override
 	public List<Goals> getSpecificGoal(String level) {
 
-		return goalJpaRepository.getSpecificGoal(level);
+		return goalJdbcRepository.getSpecificGoal(level);
 	}
 
 	@Override
 	public List<Goals> getSpecificduGoal(String level) {
-		return goalJpaRepository.getSpecificduGoal(level);
+		return goalJdbcRepository.getSpecificduGoal(level);
 	}
 
 	@Override
 	@Transactional
 	public void updateOrSaveTheGoal(Goals goals) {
-		goalJpaRepository.updateOrSaveTheGoal(goals.getParameter(), goals.getEffectiveUtil(),
-				goals.getUnbilledInProjects(), goals.getInternalProjects(), goals.getBench(),
-				goals.getDeliverySupport(), goals.getYear(), goals.getType());
+		goalJdbcRepository.updateOrSaveTheGoal(goals);
 
 	}
 	

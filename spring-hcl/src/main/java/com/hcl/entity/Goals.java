@@ -15,15 +15,15 @@ public class Goals implements Cloneable{
 	@Column(name = "Parameter")
 	private String parameter;
 	@Column(name = "EffectiveUtil")
-	private Float effectiveUtil;
+	private Double effectiveUtil;
 	@Column(name = "UnbilledInProjects")
-	private Float unbilledInProjects;
+	private Double unbilledInProjects;
 	@Column(name = "InternalProjects")
-	private Float internalProjects;
+	private Double internalProjects;
 	@Column(name = "Bench")
-	private Float bench;
+	private Double bench;
 	@Column(name = "DeliverySupport")
-	private Float deliverySupport;
+	private Double deliverySupport;
 	@Id
 	@Column(name = "Year")
 	private String year;
@@ -39,43 +39,43 @@ public class Goals implements Cloneable{
 		this.parameter = parameter;
 	}
 
-	public Float getEffectiveUtil() {
+	public Double getEffectiveUtil() {
 		return effectiveUtil;
 	}
 
-	public void setEffectiveUtil(Float effectiveUtil) {
+	public void setEffectiveUtil(Double effectiveUtil) {
 		this.effectiveUtil = effectiveUtil;
 	}
 
-	public Float getUnbilledInProjects() {
+	public Double getUnbilledInProjects() {
 		return unbilledInProjects;
 	}
 
-	public void setUnbilledInProjects(Float unbilledInProjects) {
+	public void setUnbilledInProjects(Double unbilledInProjects) {
 		this.unbilledInProjects = unbilledInProjects;
 	}
 
-	public Float getInternalProjects() {
+	public Double getInternalProjects() {
 		return internalProjects;
 	}
 
-	public void setInternalProjects(Float internalProjects) {
+	public void setInternalProjects(Double internalProjects) {
 		this.internalProjects = internalProjects;
 	}
 
-	public Float getBench() {
+	public Double getBench() {
 		return bench;
 	}
 
-	public void setBench(Float bench) {
+	public void setBench(Double bench) {
 		this.bench = bench;
 	}
 
-	public Float getDeliverySupport() {
+	public Double getDeliverySupport() {
 		return deliverySupport;
 	}
 
-	public void setDeliverySupport(Float deliverySupport) {
+	public void setDeliverySupport(Double deliverySupport) {
 		this.deliverySupport = deliverySupport;
 	}
 
@@ -95,8 +95,8 @@ public class Goals implements Cloneable{
 		this.type = type;
 	}
 
-	public Goals(String parameter, Float effectiveUtil, Float unbilledInProjects, Float internalProjects, Float bench,
-			Float deliverySupport, String year, String type) {
+	public Goals(String parameter, Double effectiveUtil, Double unbilledInProjects, Double internalProjects, Double bench,
+			Double deliverySupport, String year, String type) {
 		super();
 		this.parameter = parameter;
 		this.effectiveUtil = effectiveUtil;

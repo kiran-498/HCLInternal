@@ -6,9 +6,9 @@ import java.text.SimpleDateFormat;
 public class ConstantUtility {
 
 	public static final String MONTH_ANDYEARFORMAT = "MMM/yyyy";
-	public static final String BILL_CATEGORY = "Bill";
+	/*public static final String BILL_CATEGORY = "Bill";
 	public static final String NO_PLAN_CATEGORY = "No Plan";
-	public static final String OK_TO_RELEASE_CATEGORY = "Okay to Release";
+	public static final String OK_TO_RELEASE_CATEGORY = "Okay to Release";*/
 	public static final String LESS_THAN_30 = "< 30 days";
 	public static final String BETWEEN_30_60 = "30-60 days";
 	public static final String BETWEEN_60_90 = "60-90-Days";
@@ -16,7 +16,7 @@ public class ConstantUtility {
 	public static final String TABLE1 = "Table1";
 	public static final String TABLE2 = "Table2";
 	public static final String TABLE3 = "Table3";
-	public static final String GET_GOAL_PROCEDURE_NAME = "{call usp_wpc_GetGoals(:Year)}";
+	public static final String GET_GOAL_PROCEDURE_NAME = "usp_wpc_GetGoals";
 	public static final String GET_GOAL_PROCEDURE_PARAMETER = "Year";
 	public static final String GET_SPICIFIC_GOAL_PROCEDURE_PARAMETER = "Parameter";
 	public static final String PARAMETER_TYPE = "Parameter";
@@ -43,10 +43,12 @@ public class ConstantUtility {
 	public static final String SELECT_UN_BILLED_CATEGORY_TYPE = "select * from UnBilled_Tracker where Category_Type =?";
 	public static final String SELECT_UN_BILLED_CATEGORY_TYPE_AND_DATE = "select * from UnBilled_Tracker where EBD_LWD_TRF_Out_Date =? and EBD_LWD_TRF_Out_Date >=?";
 
-	public static final String EDIT_GOAL_PROCEDURE_NAME = "{call usp_wpc_EditGoals(:Parameter,:EffectiveUtil,:UnbilledInProjects,:InternalProjects,:Bench,:DeliverySupport,:Year,:Type)}";
-	public static final String GET_SPICIFIC_GOAL_PROCEDURE_NAME = "{call usp_wpc_GetSpecificGoals(:Parameter)}";
+	public static final String EDIT_GOAL_PROCEDURE_NAME = "usp_wpc_EditGoals";
+	public static final String GET_SPICIFIC_GOAL_PROCEDURE_NAME = "usp_wpc_GetSpecificGoals";//"{call usp_wpc_GetSpecificGoals(:Parameter)}"
 	public static final  int zero=0;
 	public static final  String empty="";
+	public static final String SELECT_UN_BILLED_CATEGORY_TYPE_MONTH_YEAR = "select * from UnBilled_Tracker where Category_Type = ? and DATEPART(YYYY,EBD_LWD_TRF_Out_Date)=? and DATEPART(MONTH,EBD_LWD_TRF_Out_Date)=? ";
+	public static final String SELECT_UN_BILLED_CATEGORY_TYPE_YEAR = "select * from UnBilled_Tracker where Category_Type = ? and DATEPART(YYYY,EBD_LWD_TRF_Out_Date)=?";
 
 	public static String getMontAndYear(Date date) {
 		SimpleDateFormat simpleMonthFormat = new SimpleDateFormat(ConstantUtility.MONTH_ANDYEARFORMAT);

@@ -17,7 +17,7 @@ public class UnBilledTracker {
 
 	@Id
 	@Column(name = "Employee_Code")
-	private float employeeCode;
+	private Double employeeCode;
 	@Column(name = "Employee_Name")
 	private String employeeName;
 	@Column(name = "Adjusted_DU")
@@ -37,11 +37,11 @@ public class UnBilledTracker {
 	@Column(name = "Last_Updated")
 	private Date lastUpdated;
 
-	public float getEmployeeCode() {
+	public Double getEmployeeCode() {
 		return employeeCode;
 	}
 
-	public void setEmployeeCode(float employeeCode) {
+	public void setEmployeeCode(Double employeeCode) {
 		this.employeeCode = employeeCode;
 	}
 
@@ -122,7 +122,7 @@ public class UnBilledTracker {
 		// TODO Auto-generated constructor stub
 	}
 
-	public UnBilledTracker(float employeeCode, String employeeName, String adjustedDU, String categoryType, String plan,
+	public UnBilledTracker(Double employeeCode, String employeeName, String adjustedDU, String categoryType, String plan,
 			Integer plan_Change_Count, Integer unbillAgeing, Date eBDLWDTRFOutDate, String remarks, Date lastUpdated) {
 		super();
 		this.employeeCode = employeeCode;

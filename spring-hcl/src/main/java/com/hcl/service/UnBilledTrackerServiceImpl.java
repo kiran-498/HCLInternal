@@ -21,17 +21,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hcl.entity.UnBilledTracker;
+import com.hcl.repository.UnBilledTrackerJdbcRepository;
 import com.hcl.repository.UnBilledTrackerRepository;
 import com.hcl.util.ConstantUtility;
 
 @Service
 public class UnBilledTrackerServiceImpl implements UnBilledTrackerService {
-	//Sai Begins
+	// Sai Begins
 	private UnBilledTrackerRepository unBilledTrackerRepository;
+	private UnBilledTrackerJdbcRepository unBilledTrackerJdbcRepository;
 
 	@Autowired
-	UnBilledTrackerServiceImpl(UnBilledTrackerRepository unBilledTrackerRepository) {
+	UnBilledTrackerServiceImpl(UnBilledTrackerRepository unBilledTrackerRepository,UnBilledTrackerJdbcRepository unBilledTrackerJdbcRepository) {
 		this.unBilledTrackerRepository = unBilledTrackerRepository;
+		this.unBilledTrackerJdbcRepository=unBilledTrackerJdbcRepository;
 	}
 
 	@Override
@@ -56,29 +59,27 @@ public class UnBilledTrackerServiceImpl implements UnBilledTrackerService {
 		Map<String, Map<String, Integer>> table2Data = new TreeMap<String, Map<String, Integer>>();
 		Map<String, Map<String, Integer>> table3Data = new TreeMap<String, Map<String, Integer>>();
 
+		Set<String> plan = new HashSet();
+		list.stream().distinct().forEach(one -> {
+			plan.add(one.getPlan());
+		});
+
 		for (String single : categoryList) {
 			List<UnBilledTracker> singleList = GetGroupOfUnbilledDetails(list, single, DuType);
-			int bill = ConstantUtility.zero;
-			int noPlan = ConstantUtility.zero;
-			int okayToRelease = ConstantUtility.zero;
 			int lessThen30 = ConstantUtility.zero;
 			int between30_60 = ConstantUtility.zero;
 			int between60_90 = ConstantUtility.zero;
 			int graterThan_90 = ConstantUtility.zero;
 			String monthAndYear = ConstantUtility.empty;
 			int monthCount = ConstantUtility.zero;
+			Map<String, Integer> Typedata = new TreeMap<String, Integer>();
+			plan.forEach(one -> {
+				Typedata.put(one, 0);
+
+			});
 			Map<String, Integer> monthdata = new LinkedHashMap<String, Integer>();
 			for (UnBilledTracker unBill : singleList) {
-				if (unBill.getPlan().equalsIgnoreCase(ConstantUtility.BILL_CATEGORY)) {
-
-					bill = bill + 1;
-				} else if (unBill.getPlan().equalsIgnoreCase(ConstantUtility.NO_PLAN_CATEGORY)) {
-
-					noPlan = noPlan + 1;
-				} else if (unBill.getPlan().equalsIgnoreCase(ConstantUtility.OK_TO_RELEASE_CATEGORY)) {
-
-					okayToRelease = okayToRelease + 1;
-				}
+				Typedata.compute(unBill.getPlan(), (k, v) -> v == 0 ? 1 : v + 1);
 				if (unBill.getUnbillAgeing() < 30) {
 					lessThen30 = lessThen30 + 1;
 				} else if (unBill.getUnbillAgeing() > 30 && unBill.getUnbillAgeing() < 60) {
@@ -104,12 +105,7 @@ public class UnBilledTrackerServiceImpl implements UnBilledTrackerService {
 				}
 			}
 			monthdata.put(monthAndYear, monthCount);
-
-			Map<String, Integer> Typedata = new TreeMap<String, Integer>();
 			Map<String, Integer> agedata = new TreeMap<String, Integer>();
-			Typedata.put(ConstantUtility.BILL_CATEGORY, bill);
-			Typedata.put(ConstantUtility.NO_PLAN_CATEGORY, noPlan);
-			Typedata.put(ConstantUtility.OK_TO_RELEASE_CATEGORY, okayToRelease);
 			// Category data
 			table1Data.put(single, Typedata);
 			agedata.put(ConstantUtility.LESS_THAN_30, lessThen30);
@@ -147,7 +143,7 @@ public class UnBilledTrackerServiceImpl implements UnBilledTrackerService {
 	private List<UnBilledTracker> getLisOfUnbilledDetails() {
 		LocalDate localDate = LocalDate.now().of(LocalDate.now().getYear(), LocalDate.now().getMonth(), 01);
 		Date date = Date.valueOf(localDate);
-		List<UnBilledTracker> list = unBilledTrackerRepository.getEBDLWDTRFOutDateGreaterThanEqual(date);
+		List<UnBilledTracker> list = unBilledTrackerJdbcRepository.getEBDLWDTRFOutDateGreaterThanEqual(date);
 		return list;
 	}
 
@@ -185,18 +181,18 @@ public class UnBilledTrackerServiceImpl implements UnBilledTrackerService {
 	public List<JSONObject> getUnbilledL3PlanData(String type, String month, String year) {
 
 		if (month.equalsIgnoreCase(ConstantUtility.GRAND_TOTAL) && year.equalsIgnoreCase(ConstantUtility.GRAND_TOTAL)) {
-			List<UnBilledTracker> list = unBilledTrackerRepository.findAllByCategoryType(type);
+			List<UnBilledTracker> list = unBilledTrackerJdbcRepository.findAllByCategoryType(type);
 			return this.mapwithMontAndYear(list);
 
 		} else if (!month.equalsIgnoreCase(ConstantUtility.GRAND_TOTAL)
 				&& !year.equalsIgnoreCase(ConstantUtility.GRAND_TOTAL)) {
-			List<UnBilledTracker> list = unBilledTrackerRepository.findAllByCategoryTypeAndMonthAndYear(type,
+			List<UnBilledTracker> list = unBilledTrackerJdbcRepository.findAllByCategoryTypeAndMonthAndYear(type,
 					Integer.parseInt(year), ConstantUtility.getDaysInMonth(month));
 			return this.mapwithOutMontAndYear(list);
 
 		} else if (month.equalsIgnoreCase(ConstantUtility.GRAND_TOTAL)
 				&& !year.equalsIgnoreCase(ConstantUtility.GRAND_TOTAL)) {
-			List<UnBilledTracker> list = unBilledTrackerRepository.findAllByCategoryTypeAndYear(type,
+			List<UnBilledTracker> list = unBilledTrackerJdbcRepository.findAllByCategoryTypeAndYear(type,
 					Integer.parseInt(year));
 			return this.mapwithOutMontAndYear(list);
 		}
@@ -212,6 +208,7 @@ public class UnBilledTrackerServiceImpl implements UnBilledTrackerService {
 		return finalList;
 
 	}
+
 	private List<JSONObject> mapwithOutMontAndYear(List<UnBilledTracker> list) {
 		List<JSONObject> finalList = new ArrayList<>();
 		for (UnBilledTracker single : list) {
@@ -220,87 +217,68 @@ public class UnBilledTrackerServiceImpl implements UnBilledTrackerService {
 		return finalList;
 
 	}
-	
-	//Sai Ends
-	
-	//Alekhya Begin
-		public Map<String,List<UnBilledTracker>> findWithCatAndPlan(String categoryType, String plan) {
-			Map<String,List<UnBilledTracker>> JsonResult = new HashMap<>();
-			JsonResult.put("Data", unBilledTrackerRepository.findAllByCategoryTypeAndPlan(categoryType,plan));
-			return JsonResult;
-		}
-		
-		public Map<String,List<UnBilledTracker>> FindByCatAndAge(String categoryType,String age){
-			Map<String,List<UnBilledTracker>> JsonResult = new HashMap<>(); 
-			if(age.contains("<30Days")) {
-				JsonResult.put("Data",unBilledTrackerRepository.findAllByCategoryTypeAndUnbillAgeingLessThanEqual(categoryType, 30));
-				return JsonResult;
-			}
-			else if(age.contains("30-60Days")) {
-				JsonResult.put("Data",unBilledTrackerRepository.findAllByCategoryTypeAndUnbillAgeingGreaterThanAndUnbillAgeingLessThanEqual(categoryType, 30,60));
-				 return JsonResult;
-			}
-			else if(age.contains("60-90Days")) {
-				JsonResult.put("Data",unBilledTrackerRepository.findAllByCategoryTypeAndUnbillAgeingGreaterThanAndUnbillAgeingLessThanEqual(categoryType, 60,90));
-				return JsonResult;
-			}
-			else if(age.contains(">90Days")) {
-				JsonResult.put("Data",unBilledTrackerRepository.findAllByCategoryTypeAndUnbillAgeingGreaterThan(categoryType, 90));
-				return JsonResult;
-			}
-			else{
-				JsonResult.put("Data",unBilledTrackerRepository.findAllByCategoryType(categoryType));
-				return JsonResult;
-			}
-		}
 
-		
-		//Alekhya Ends
-		
-		//Varun Begins
+	// Sai Ends
 
-		public List<UnBilledTracker> FindByPlanAndDu(String Du,String Plan){
-			if(Plan.contains("Grand Total")) {
-				return unBilledTrackerRepository.findAllByAdjustedDU(Du);
-			}
-			else{
-					return unBilledTrackerRepository.findAllByAdjustedDUAndPlan(Du,Plan);
-			}
-		}
-		
-		public List<UnBilledTracker> FindByDuAndAge(String Du,String Age){
-			if(Age.contains("< 30 days")) {
-				return unBilledTrackerRepository.findAllByAdjustedDUAndUnbillAgeingLessThanEqual(Du, 30);
-			}
-			else if(Age.contains("30-60 days")) {
-				return unBilledTrackerRepository.findAllByAdjustedDUAndUnbillAgeingGreaterThanAndUnbillAgeingLessThanEqual(Du, 30,60);
-			}
-			else if(Age.contains("60-90-Days")) {
-				return unBilledTrackerRepository.findAllByAdjustedDUAndUnbillAgeingGreaterThanAndUnbillAgeingLessThanEqual(Du, 60,90);
-			}
-			else if(Age.contains("> 90-Days")) {
-				return unBilledTrackerRepository.findAllByadjustedDUAndUnbillAgeingGreaterThan(Du, 90);
-			}
-			else{
-				return unBilledTrackerRepository.findAllByAdjustedDU(Du);
-			}
-		}
-		public enum monthNames { Jan, Feb, Mar, Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec };
-		public List<UnBilledTracker> FindByDuAndYearAndMonth(String Du,String month,String year){
-			
+	// Alekhya Begin
+	@Override
+	public Map<String, List<UnBilledTracker>> findWithCatAndPlan(String categoryType, String plan) {
+		Map<String,List<UnBilledTracker>> JsonResult = new HashMap<>(); 
+		JsonResult.put("Data", unBilledTrackerJdbcRepository.findWithCatAndPlan(categoryType,plan));
+		return JsonResult;
+	}
 
-			if(month.contains("Grand Total")&& year.contains("Grand Total")) {
-				return  unBilledTrackerRepository.findAllByAdjustedDU(Du);
-			}
-			else if(month.contains("Grand Total") && !year.contains("Grand Total")) {
-				return unBilledTrackerRepository.findAllByDuAndYear(Du,Integer.parseInt(year));
-			}
-			else {
-				int monthint=monthNames.valueOf(month).ordinal();
-				return unBilledTrackerRepository.findAllByDuAndMonthAndYear(Du,Integer.parseInt(year),monthint+1);
-			}
+	@Override
+	public Map<String, List<UnBilledTracker>> FindByCatAndAge(String categoryType, String age) {
+		Map<String,List<UnBilledTracker>> JsonResult = new HashMap<>(); 
+		JsonResult.put("Data", unBilledTrackerJdbcRepository.findWithCatAndAge(categoryType,age));
+		return JsonResult;
+	}
+
+	// Alekhya Ends
+
+	// Varun Begins
+
+	public List<UnBilledTracker> FindByPlanAndDu(String Du, String Plan) {
+		if (Plan.contains("Grand Total")) {
+			return unBilledTrackerRepository.findAllByAdjustedDU(Du);
+		} else {
+			return unBilledTrackerRepository.findAllByAdjustedDUAndPlan(Du, Plan);
 		}
-		
-		// Varun Ends
+	}
+
+	public List<UnBilledTracker> FindByDuAndAge(String Du, String Age) {
+		if (Age.contains("< 30 days")) {
+			return unBilledTrackerRepository.findAllByAdjustedDUAndUnbillAgeingLessThanEqual(Du, 30);
+		} else if (Age.contains("30-60 days")) {
+			return unBilledTrackerRepository
+					.findAllByAdjustedDUAndUnbillAgeingGreaterThanAndUnbillAgeingLessThanEqual(Du, 30, 60);
+		} else if (Age.contains("60-90-Days")) {
+			return unBilledTrackerRepository
+					.findAllByAdjustedDUAndUnbillAgeingGreaterThanAndUnbillAgeingLessThanEqual(Du, 60, 90);
+		} else if (Age.contains("> 90-Days")) {
+			return unBilledTrackerRepository.findAllByadjustedDUAndUnbillAgeingGreaterThan(Du, 90);
+		} else {
+			return unBilledTrackerRepository.findAllByAdjustedDU(Du);
+		}
+	}
+
+	public enum monthNames {
+		Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
+	};
+
+	public List<UnBilledTracker> FindByDuAndYearAndMonth(String Du, String month, String year) {
+
+		if (month.contains("Grand Total") && year.contains("Grand Total")) {
+			return unBilledTrackerRepository.findAllByAdjustedDU(Du);
+		} else if (month.contains("Grand Total") && !year.contains("Grand Total")) {
+			return unBilledTrackerRepository.findAllByDuAndYear(Du, Integer.parseInt(year));
+		} else {
+			int monthint = monthNames.valueOf(month).ordinal();
+			return unBilledTrackerRepository.findAllByDuAndMonthAndYear(Du, Integer.parseInt(year), monthint + 1);
+		}
+	}
+
+	// Varun Ends
 
 }

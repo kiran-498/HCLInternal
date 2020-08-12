@@ -15,26 +15,7 @@ import com.hcl.util.ConstantUtility;
 @Repository
 public interface GoalJpaRepository extends JpaRepository<Goals, ParaAndYearAndType> {
 
-	@Query(value = ConstantUtility.GET_GOAL_PROCEDURE_NAME, nativeQuery = true)
-	public List<Goals> getAllGoalsByYear(@Param(ConstantUtility.GET_GOAL_PROCEDURE_PARAMETER) String year);
-
-	@Modifying
-	@Query(value = ConstantUtility.EDIT_GOAL_PROCEDURE_NAME, nativeQuery = true)
-	public void updateOrSaveTheGoal(@Param(ConstantUtility.PARAMETER_TYPE) String parameter,
-			@Param(ConstantUtility.EFFECTIVEUTIL_TYPE) Float effectiveUtilType,
-			@Param(ConstantUtility.UNBILLED_IN_PROJECTS_TYPE) Float unbilledInProject,
-			@Param(ConstantUtility.INTERNAL_PROJECTS_TYPE) Float internalProjectType,
-			@Param(ConstantUtility.BENCH_TYPE) Float benchType,
-			@Param(ConstantUtility.DELIVERY_SUPPORT_TYPE) Float deliverySupportType,
-			@Param(ConstantUtility.YEAR_TYPE) String year, @Param(ConstantUtility.TYPE_TYPE) String type);
-
-	@Query(value = ConstantUtility.GET_SPICIFIC_GOAL_PROCEDURE_NAME, nativeQuery = true)
-	public List<Goals> getSpecificGoal(@Param(ConstantUtility.GET_SPICIFIC_GOAL_PROCEDURE_PARAMETER) String parameter);
-
-	@Query(value = ConstantUtility.GET_SPICIFIC_GOAL_PROCEDURE_NAME, nativeQuery = true)
-	public List<Goals> getSpecificduGoal(@Param(ConstantUtility.GET_SPICIFIC_GOAL_PROCEDURE_PARAMETER) String level);
 	
-	////////////////////////////////////////////////////////////////
 	
 	@Query(value="select max(YEAR) from tbl_wpc_Goals",  nativeQuery = true)
 	public String FindMaxDate();

@@ -14,7 +14,7 @@ public class UnbilledRowMapper implements RowMapper<UnBilledTracker> {
 	public UnBilledTracker mapRow(ResultSet rs, int rowNum) throws SQLException {
 
 		UnBilledTracker unBilledDetails = new UnBilledTracker();
-		unBilledDetails.setEmployeeCode(rs.getFloat(ConstantUtility.Employee_Code));
+		unBilledDetails.setEmployeeCode(rs.getDouble(ConstantUtility.Employee_Code));
 		unBilledDetails.setEmployeeName(rs.getString(ConstantUtility.Employee_Name));
 		unBilledDetails.setAdjustedDU(rs.getString(ConstantUtility.Adjusted_DU));
 		unBilledDetails.setCategoryType(rs.getString(ConstantUtility.Category_Type));

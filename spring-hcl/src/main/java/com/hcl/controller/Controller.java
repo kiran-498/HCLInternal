@@ -36,24 +36,35 @@ import com.hcl.util.GateWayResponse;
 import com.hcl.util.MessageKeysUtility;
 import com.hcl.util.RequestMappingUrls;
 
+/**
+ * @author sai
+ *
+ */
 @RestController
 @RequestMapping(RequestMappingUrls.CONTROLLER_CLASS_LEVEL_URL)
 public class Controller {
 	//Sai Beigns
 	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 	
-	@Autowired
-	UtilizationService utilizationService;
+	private UtilizationService utilizationService;
 	private GoalsService goalsService;
 	private UnBilledTrackerService unBilledTrackerService;
 
 	@Autowired
-	public Controller(UnBilledTrackerService unBilledTrackerService, GoalsService goalsService) {
+	public Controller(UnBilledTrackerService unBilledTrackerService, GoalsService goalsService,UtilizationService utilizationService) {
 
 		this.unBilledTrackerService = unBilledTrackerService;
 		this.goalsService = goalsService;
+		this.utilizationService=utilizationService;
 	}
 
+
+	/**
+	 * http://localhost:9090/wpc/utilization/goal/FY-18/Onsite
+	 * @param year
+	 * @param type
+	 * @return list of Goals
+	 */
 	@GetMapping(RequestMappingUrls.UTILIZATION_URL + RequestMappingUrls.GOAL_URL + RequestMappingUrls.GOAL_YEAR_PARAM
 			+ RequestMappingUrls.GOAL_TYPE_PARAM)
 	public GateWayResponse<?> getAllgols(@PathVariable String year,@PathVariable String type) {
@@ -70,6 +81,11 @@ public class Controller {
 		}
 	}
 
+	/**
+	 * http://localhost:9090/wpc/utilization/specificGoal/Overall
+	 * @param level
+	 * @return list of Goals
+	 */
 	@GetMapping(RequestMappingUrls.UTILIZATION_URL + RequestMappingUrls.SPECIFIC_GOAL_URL
 			+ RequestMappingUrls.SPECIFIC_GOAL_LEVEL_PARAM)
 	public GateWayResponse<?> getSpecificGoal(@PathVariable String level) {
@@ -88,6 +104,11 @@ public class Controller {
 		}
 	}
 
+	/**
+	 * http://localhost:9090/wpc/utilization/duGoal/ERS-HnC-DU
+	 * @param level
+	 * @return list of Goals
+	 */
 	@GetMapping(RequestMappingUrls.UTILIZATION_URL + RequestMappingUrls.SPECIFIC_DUGOAL_URL
 			+ RequestMappingUrls.SPECIFIC_GOAL_LEVEL_PARAM)
 	public GateWayResponse<?> getSpecificduGoal(@PathVariable String level) {
@@ -104,6 +125,11 @@ public class Controller {
 		}
 	}
 
+	/**
+	 * http://localhost:9090/wpc/utilization/goal/update
+	 * @param Goals
+	 * @return sucess string
+	 */
 	@PostMapping(RequestMappingUrls.UTILIZATION_URL + RequestMappingUrls.GOAL_URL + RequestMappingUrls.UPDATE_URL)
 	public GateWayResponse<?> updateOrSaveTheGoal(@RequestBody Goals goals) {
 
@@ -119,7 +145,10 @@ public class Controller {
 			return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, e.getMessage());
 		}
 	}
-
+	/**
+	 * http://localhost:9090/wpc/unbilled
+	 * @return Map
+	**/
 	@GetMapping(RequestMappingUrls.UNBILLED_URL)
 	public GateWayResponse<?> getUnBilledDetails() {
 
@@ -137,6 +166,10 @@ public class Controller {
 
 	}
 
+	/**
+	 * http://localhost:9090/wpc/unbilledL4Data
+	 * @return Map
+	**/
 	@GetMapping(RequestMappingUrls.UNBILLED4_DATA_URL)
 	public GateWayResponse<?> getUnBilled4Data() {
 
@@ -153,6 +186,13 @@ public class Controller {
 
 	}
 
+	/**
+	 * http://localhost:9090/wpc/unbilled/unbilledL3PlanData/M-RAMP UP-D2/Grand Total/Grand Total
+	 * @param type
+	 *@param month
+	 *@param year
+	 * @return JSONObject
+	 */
 	@GetMapping(RequestMappingUrls.UNBILLED_URL + RequestMappingUrls.UNBILLED3_PLAN_DATA_URL
 			+ RequestMappingUrls.UNBILLED3_PLAN_TYPE_PARAM)
 	public GateWayResponse<?> getUnbilledL3PlanData(@PathVariable String type, @PathVariable String column1,
@@ -172,17 +212,38 @@ public class Controller {
 	//Sai Ends
 	//Alekhya Begins
 	// To retrieve the data from the utilization table when the MaxDate is given
-		/*
-		 * URL : http://localhost:8080/wpc/utilization
-		 * Output : JSON Format {"DUWise":[Objects]}
-		 * For now, the Max date is taken, small change in the query gives the range between 2 dates and data gets extracted like before. 
-		 */
-		@GetMapping(RequestMappingUrls.UTILIZATION_URL)
-		public GateWayResponse<?> findAll(){
-			try {
-			Date maxDateInUtil=Date.valueOf(utilizationService.selectMaxDate(RequestMappingUrls.UTILIZATION_FOR_MAX_DATE));
-			Map<String,List<Utilization>> findAllDataWithMaxDate = utilizationService.findAll(maxDateInUtil);
-			return new GateWayResponse<>(HttpStatus.OK, findAllDataWithMaxDate, MessageKeysUtility.MESSAGE_SUCCESS);
+			/*
+			 * URL : http://localhost:8080/wpc/utilization
+			 * Output : JSON Format {"DUWise":[Objects]}
+			 * For now, the Max date is taken, small change in the query gives the range between 2 dates and data gets extracted like before. 
+			 */
+			@GetMapping(RequestMappingUrls.UTILIZATION_URL)
+			public GateWayResponse<?> findAll(){
+				try {
+				//Date maxDateInUtil=Date.valueOf(utilizationService.selectMaxDate(RequestMappingUrls.UTILIZATION_FOR_MAX_DATE));
+				Map<String,List<Utilization>> findAllDataWithMaxDate = utilizationService.findAll();
+				return new GateWayResponse<>(HttpStatus.OK, findAllDataWithMaxDate, MessageKeysUtility.MESSAGE_SUCCESS);
+				} catch (NullPointerException nullExc) {
+					return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, nullExc.getMessage());
+				} catch (BadRequestException badRequestException) {
+					return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, badRequestException.getMessage());
+				} catch (Exception e) {
+					return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, e.getMessage());
+				}
+			}
+			
+			//To retrieve the data with Category Type and Plan		
+			/*
+			 * URL to use : http://localhost:8080/wpc/unbilled/unbilledL3OverallData/{Category_Type}/{Plan}
+			 * URL for Testing : http://localhost:8080/wpc/unbilled/unbilledL3OverallData/M-RAMP UP-D2/Bill
+			 * Output : JSon Format {"Data":[Objects]}
+			 */
+			@GetMapping(RequestMappingUrls.UNBILLED_URL+RequestMappingUrls.UNBILLEDL3_OVERALL_DATA + 
+					RequestMappingUrls.CATEGORY_TYPE + RequestMappingUrls.PLAN)
+			public GateWayResponse<?> findWithCatAndPlan(@PathVariable String Category_Type , @PathVariable String plan){	
+				try {
+				Map<String,List<UnBilledTracker>> ListOfDataWithCatAndPlan = unBilledTrackerService.findWithCatAndPlan(Category_Type,plan);
+				return new GateWayResponse<>(HttpStatus.OK, ListOfDataWithCatAndPlan, MessageKeysUtility.MESSAGE_SUCCESS);
 			} catch (NullPointerException nullExc) {
 				return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, nullExc.getMessage());
 			} catch (BadRequestException badRequestException) {
@@ -190,60 +251,41 @@ public class Controller {
 			} catch (Exception e) {
 				return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, e.getMessage());
 			}
-		}
-		
-		/*
-		 * To retrieve the financial years list. 
-		 * URL : http://localhost:8080/wpc/utilization/goal/FY-21
-		 * Output : [Objects] 
-		 * For now, it returns all the data. Small change in the query gives the data for the given financial year.
-		 */
-		@GetMapping(RequestMappingUrls.UTILIZATION_URL + RequestMappingUrls.GOAL_URL +RequestMappingUrls.GOAL_YEAR_PARAM)
-		public GateWayResponse<?> findFinancialYears(@PathVariable String year){
-			try {
-			List<FinancialYears> ListOfFinancialYears = utilizationService.findFinancialYears(year);
-					return new GateWayResponse<>(HttpStatus.OK, ListOfFinancialYears, MessageKeysUtility.MESSAGE_SUCCESS);
-		} catch (NullPointerException nullExc) {
-			return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, nullExc.getMessage());
-		} catch (BadRequestException badRequestException) {
-			return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, badRequestException.getMessage());
-		} catch (Exception e) {
-			return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, e.getMessage());
-		}
-		
-		}
-		
-		//To retrieve the data with Category Type and Plan		
-		/*
-		 * URL for Testing : http://localhost:8080/wpc/unbilled/unbilledL3OverallData/M-RAMP UP-D2/Bill
-		 * Output : JSon Format {"Data":[Objects]}
-		 */
-		@GetMapping(RequestMappingUrls.UNBILLED_URL+RequestMappingUrls.UNBILLEDL3_OVERALL_DATA + 
-				RequestMappingUrls.CATEGORY_TYPE + RequestMappingUrls.PLAN)
-		public GateWayResponse<?> findWithCatAndPlan(@PathVariable String Category_Type , @PathVariable String plan){	
-			try {
-			Map<String,List<UnBilledTracker>> ListOfDataWithCatAndPlan = unBilledTrackerService.findWithCatAndPlan(Category_Type,plan);
-			return new GateWayResponse<>(HttpStatus.OK, ListOfDataWithCatAndPlan, MessageKeysUtility.MESSAGE_SUCCESS);
-		} catch (NullPointerException nullExc) {
-			return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, nullExc.getMessage());
-		} catch (BadRequestException badRequestException) {
-			return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, badRequestException.getMessage());
-		} catch (Exception e) {
-			return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, e.getMessage());
-		}
-		}
-		
-		//To retrieve the data with Category Type and Age period.
-		/*
-		 * Url for Testing : http://localhost:8080/wpc/unbilled/unbilledL3AgingData/M-RAMP UP-D2/60-90Days
-		 *  output : JSON Format {"Data":[Objects]}
-		 */
-		@GetMapping(RequestMappingUrls.UNBILLED_URL+RequestMappingUrls.UNBILLEDL3_AGEING_DATA + RequestMappingUrls.CATEGORY_TYPE +
-RequestMappingUrls.AGE)
-		public GateWayResponse<?> findWithCatAndAge(@PathVariable String Category_Type , @PathVariable String age){
-			try {
-			Map<String,List<UnBilledTracker>> ListOfDataWithCatAndPlan = unBilledTrackerService.FindByCatAndAge(Category_Type,age);
-			return new GateWayResponse<>(HttpStatus.OK, ListOfDataWithCatAndPlan, MessageKeysUtility.MESSAGE_SUCCESS);
+			}
+			
+			//To retrieve the data with Category Type and Age period.
+			/*
+			 * Url to use : http://localhost:8080/wpc/unbilled/unbilledL3AgingData/{Category_Type}/{Age}
+			 * Url for Testing : http://localhost:8080/wpc/unbilled/unbilledL3AgingData/M-RAMP UP-D2/60-90Days
+			 *  output : JSON Format {"Data":[Objects]}
+			 */
+			@GetMapping(RequestMappingUrls.UNBILLED_URL+RequestMappingUrls.UNBILLEDL3_AGEING_DATA + RequestMappingUrls.CATEGORY_TYPE +
+	RequestMappingUrls.AGE)
+			public GateWayResponse<?> findWithCatAndAge(@PathVariable String Category_Type , @PathVariable String age){
+				try {
+				Map<String,List<UnBilledTracker>> ListOfDataWithCatAndPlan = unBilledTrackerService.FindByCatAndAge(Category_Type,age);
+				return new GateWayResponse<>(HttpStatus.OK, ListOfDataWithCatAndPlan, MessageKeysUtility.MESSAGE_SUCCESS);
+				} catch (NullPointerException nullExc) {
+					return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, nullExc.getMessage());
+				} catch (BadRequestException badRequestException) {
+					return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, badRequestException.getMessage());
+				} catch (Exception e) {
+					return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, e.getMessage());
+				}
+			}
+			
+			/*
+			 * To retrieve the financial years list. 
+			 * URL to use : http://localhost:8080/wpc/utilization/goal/{FY}
+			 * URL : http://localhost:8080/wpc/utilization/goal/FY-21
+			 * Output : [Objects] 
+			 * For now, it returns all the data. Small change in the query gives the data for the given financial year.
+			 */
+			@GetMapping(RequestMappingUrls.UTILIZATION_URL + RequestMappingUrls.GOAL_URL +RequestMappingUrls.GOAL_YEAR_PARAM)
+			public GateWayResponse<?> findFinancialYears(@PathVariable String year){
+				try {
+				List<FinancialYears> ListOfFinancialYears = utilizationService.findFinancialYears(year);
+						return new GateWayResponse<>(HttpStatus.OK, ListOfFinancialYears, MessageKeysUtility.MESSAGE_SUCCESS);
 			} catch (NullPointerException nullExc) {
 				return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, nullExc.getMessage());
 			} catch (BadRequestException badRequestException) {
@@ -251,7 +293,8 @@ RequestMappingUrls.AGE)
 			} catch (Exception e) {
 				return new GateWayResponse<>(HttpStatus.EXPECTATION_FAILED, e.getMessage());
 			}
-		}
+			
+			}
 		//Alekhya Ends
 		//Varun Begins
 			

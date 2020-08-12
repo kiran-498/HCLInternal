@@ -21,24 +21,31 @@ import com.hcl.entity.Utilization;
 import com.hcl.pojo.ResultBean;
 import com.hcl.repository.FinancialYearsRepository;
 import com.hcl.repository.GoalJpaRepository;
-import com.hcl.repository.Repo_Project_bill_split;
-import com.hcl.repository.Repo_Utilization;
+import com.hcl.repository.ProjectBillSplitRepository;
+import com.hcl.repository.UtilizationJdbcRepository;
+import com.hcl.repository.UtilizationRepository;
+import com.hcl.util.RequestMappingUrls;
 
 
 @Service
 public class UtilizationService {
 
 	@Autowired 
-	Repo_Utilization utilizationDao; 
+	UtilizationRepository utilizationDao; 
 	
 	@Autowired
-	Repo_Project_bill_split repo_Bill_split;
+	ProjectBillSplitRepository repo_Bill_split;
 	
 	@Autowired
 	private GoalJpaRepository repo_Goales;
 	
 	@Autowired
 	private FinancialYearsRepository financialYearsRepository;
+	@Autowired
+	private GoalsServiceImpl goalserv;
+	
+	@Autowired 
+	UtilizationJdbcRepository utilizationJdbcRepository; 
 	
 	// Varun Begins
 	public String selectMaxDate(String tableName) {
@@ -57,13 +64,13 @@ public class UtilizationService {
 	public List<ProjectBillSplit> selectProjectBillSplit(Date startDate,Date endDate){
 		return repo_Bill_split.FindRecords(startDate, endDate);
 	}
-	public float sumutill(Utilization util) {
+	public Double sumutill(Utilization util) {
 		return util.getBench()+util.getDelivery_Support()+util.getEffective_Utilization()+util.getInternal_Projects_SUT()+util.getUnbilled_In_Projects();}
-	public Goals sumGoal(Goals ciscogoal,Float tot) {
+	public Goals sumGoal(Goals ciscogoal,Double tot) {
 		Float temper=(float) 0.0;
 		DecimalFormat df=new DecimalFormat("#.##");
 		Goals ciscogoalcopy=ciscogoal;
-		Float goalTot=(float)0;
+		Double goalTot=0.0;
 		if(ciscogoalcopy.getBench()!=null) {
 			goalTot=goalTot+ciscogoalcopy.getBench();
 			ciscogoalcopy.setBench(((ciscogoalcopy.getBench()*tot)/100));
@@ -86,24 +93,23 @@ public class UtilizationService {
 			}
 //percentage cal
 		if(ciscogoalcopy.getBench()!=null) {
-			ciscogoalcopy.setBench(Float.valueOf(df.format((ciscogoalcopy.getBench()*100/goalTot))));
+			ciscogoalcopy.setBench(Double.valueOf(df.format((ciscogoalcopy.getBench()*100/goalTot))));
 		}
 		if(ciscogoalcopy.getDeliverySupport()!=null) {
-			ciscogoalcopy.setDeliverySupport(Float.valueOf(df.format((ciscogoalcopy.getDeliverySupport()*100/goalTot))));
+			ciscogoalcopy.setDeliverySupport(Double.valueOf(df.format((ciscogoalcopy.getDeliverySupport()*100/goalTot))));
 		}
 		if(ciscogoalcopy.getEffectiveUtil()!=null) {
-			ciscogoalcopy.setEffectiveUtil(Float.valueOf(df.format((ciscogoalcopy.getEffectiveUtil()*100/goalTot))));
+			ciscogoalcopy.setEffectiveUtil(Double.valueOf(df.format((ciscogoalcopy.getEffectiveUtil()*100/goalTot))));
 		}
 		if(ciscogoalcopy.getInternalProjects()!=null) {
-			ciscogoalcopy.setInternalProjects(Float.valueOf(df.format((ciscogoalcopy.getInternalProjects()*100/goalTot))));
+			ciscogoalcopy.setInternalProjects(Double.valueOf(df.format((ciscogoalcopy.getInternalProjects()*100/goalTot))));
 		} 
 		if(ciscogoalcopy.getUnbilledInProjects()!=null) {
-			ciscogoalcopy.setUnbilledInProjects(Float.valueOf(df.format((ciscogoalcopy.getUnbilledInProjects()*100/goalTot))));
+			ciscogoalcopy.setUnbilledInProjects(Double.valueOf(df.format((ciscogoalcopy.getUnbilledInProjects()*100/goalTot))));
 			}
 		return ciscogoalcopy;
 	}
-	@Autowired
-	GoalsServiceImpl goalserv;
+	
 	
 	public JSONObject duWise() throws JSONException {
 		Date maxDateInUtil=Date.valueOf(selectMaxDate("Utilization"));
@@ -143,7 +149,7 @@ public class UtilizationService {
 					for(Utilization utillobj:utilidata1) {
 						
 						Goals goalob;
-						Float tot;
+						Double tot;
 						try{
 							tot=sumutill(utillobj);
 							if(utillobj.getLevel().contains("Overall")) {
@@ -187,52 +193,61 @@ public class UtilizationService {
 	
 	//Alekhya - Begin
 	
-	public Map<String,List<Utilization>> findAll(Date MaxDate){;	
-		List<Utilization> result = utilizationDao.findAll(MaxDate) ;
-		Map<String,List<Utilization>> result1 = findPercentages(result);
-		return result1;
-	}
-	
-	/*
-	 * To find the percentage values for the columns required. 
-	 */
-	public Map<String,List<Utilization>> findPercentages(List<Utilization> result) {
-		Map<String,List<Utilization>> mainResult = new HashMap<String,List<Utilization>>();
-		List<Utilization> newResult = new ArrayList<Utilization>();
-		Utilization um = null;
-		for (Utilization eachRow : result) {
-			um = new Utilization();
-			double total = findTotal(eachRow);
-			um.setCalendar_Day(eachRow.getCalendar_Day());
-			um.setLevel(eachRow.getLevel());
-			um.setBench(roundValues(eachRow.getBench()*100/total));
-			um.setDelivery_Support(roundValues(eachRow.getDelivery_Support()*100/total));
-			um.setEffective_Utilization(roundValues(eachRow.getEffective_Utilization()*100/total));
-			um.setInternal_Projects_SUT(roundValues(eachRow.getInternal_Projects_SUT()*100/total));
-			um.setUnbilled_In_Projects(roundValues(eachRow.getUnbilled_In_Projects()*100/total));
-			newResult.add(um);
+	public Map<String,List<Utilization>> findAll(){;	
+	Date MaxDate = utilizationJdbcRepository.FindMaxDate(RequestMappingUrls.UTILIZATION_FOR_MAX_DATE);
+	List<Utilization> result = utilizationJdbcRepository.findAll(MaxDate) ;
+	Map<String,List<Utilization>> result1 = findPercentages(result);
+	return result1;
+}
+
+/*
+ * To find the percentage values for the columns required. 
+ */
+public Map<String,List<Utilization>> findPercentages(List<Utilization> result) {
+	Map<String,List<Utilization>> mainResult = new HashMap<String,List<Utilization>>();
+	List<Utilization> newResult = new ArrayList<Utilization>();
+	Utilization um = null;
+	for (Utilization eachRow : result) {
+		um = new Utilization();
+		Double total = findTotal(eachRow);
+		if(total != null) {
+		um.setCalendar_Day(eachRow.getCalendar_Day());
+		um.setLevel(eachRow.getLevel());
+		um.setBench(roundValues(eachRow.getBench()*100/total));
+		um.setDelivery_Support(roundValues(eachRow.getDelivery_Support()*100/total));
+		um.setEffective_Utilization(roundValues(eachRow.getEffective_Utilization()*100/total));
+		um.setInternal_Projects_SUT(roundValues(eachRow.getInternal_Projects_SUT()*100/total));
+		um.setUnbilled_In_Projects(roundValues(eachRow.getUnbilled_In_Projects()*100/total));
+		newResult.add(um);
 		}
-		mainResult.put("DuWise",newResult);
-		return mainResult;
 	}
-	/*
-	 * To find the total for each row, just once. If not, it calculated every time for every column of each row.
-	 */
-	public double findTotal (Utilization eachRow) {
-		return (eachRow.getBench()+eachRow.getDelivery_Support()
-		+eachRow.getEffective_Utilization()+eachRow.getInternal_Projects_SUT()+eachRow.getUnbilled_In_Projects());
+	mainResult.put("DuWise",newResult);
+	return mainResult;
+}
+/*
+ * To find the total for each row, just once. If not, it calculated every time for every column of each row.
+ */
+public Double findTotal (Utilization eachRow) {
+	Double Total = null;
+	if(eachRow.getBench() != null && eachRow.getDelivery_Support() != null &&
+	eachRow.getEffective_Utilization() != null && eachRow.getInternal_Projects_SUT()!= null && 
+	eachRow.getUnbilled_In_Projects() != null) {
+	Total = eachRow.getBench()+eachRow.getDelivery_Support()
+	+eachRow.getEffective_Utilization()+eachRow.getInternal_Projects_SUT()+eachRow.getUnbilled_In_Projects();
 	}
-	
-	/*
-	 * For Rounding of the returned Percent values to 2 decimals. 
-	 */
-	public float roundValues(double input) {
-		BigDecimal bd = new BigDecimal(input).setScale(2, RoundingMode.HALF_UP);
-		return (float)bd.doubleValue();
-	}
-	
-	public List<FinancialYears> findFinancialYears(String year) {
-		return financialYearsRepository.findFinancialYears();
-	}
+	return Total;
+}
+
+/*
+ * For Rounding of the returned Percent values to 2 decimals. 
+ */
+public Double roundValues(Double input) {
+	BigDecimal bd = new BigDecimal(input).setScale(2, RoundingMode.HALF_UP);
+	return bd.doubleValue();
+}
+
+public List<FinancialYears> findFinancialYears(String year) {
+	return financialYearsRepository.findFinancialYears();
+}
  // Alekhya Ends
 }
